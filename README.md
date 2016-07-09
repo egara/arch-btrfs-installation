@@ -74,8 +74,7 @@ mount /dev/sda4 /mnt/home
 Proceed with installing Arch Linux (Installation section within Beginner's guide).
 
 ## Fstab ##
-After executing **genfstab -U /mnt >> /mnt/etc/fstab
-** to generate fstab file using UUIDs for the partitions, I edited fstab and this is the result (please note that for those partitions which have a label defined, this label has been used)
+After executing *genfstab -U /mnt >> /mnt/etc/fstab* to generate fstab file using **UUIDs** for the partitions, I edited fstab and this is the result (please note that for those partitions which have a label defined, this label has been used)
 
 ```
 #
