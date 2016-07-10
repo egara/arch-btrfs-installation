@@ -1,0 +1,26 @@
+# 
+# /etc/fstab: static file system information
+#
+# <file system>	<dir>	<type>	<options>	<dump>	<pass>
+# /dev/sda3 LABEL=arch
+#UUID=897eeef7-9ec6-4723-8b00-d0d7118b2a03	/         	btrfs     	rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvolid=258,subvol=/_active/rootvol,subvol=_active/rootvol	0 0
+LABEL=arch	/         	btrfs     	rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/rootvol	0 0
+
+# /dev/sda1
+UUID=C679-F6A0      	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro	0 2
+
+# /dev/sda3 LABEL=arch
+#UUID=897eeef7-9ec6-4723-8b00-d0d7118b2a03	/tmp      	btrfs     	rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvolid=259,subvol=/_active/tmp,subvol=_active/tmp	0 0
+LABEL=arch	/tmp      	btrfs     	rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/tmp	0 0
+
+# /dev/sda4
+#UUID=667a30e3-bf8f-405c-b00a-037d32b64155	/home     	ext4      	rw,relatime,data=ordered	0 2
+LABEL=home       /home           ext4            rw,relatime,data=ordered        0 2
+
+# /dev/sda2
+UUID=04293b56-e2f9-4d3b-aded-6baad666d5bb	none      	swap      	defaults  	0 0
+
+# /dev/sda3 LABEL=arch volume
+#UUID=897eeef7-9ec6-4723-8b00-d0d7118b2a03	/mnt/defvol         	btrfs     	rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache	0 0
+LABEL=arch	/mnt/defvol         	btrfs     	rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache	0 0
+
