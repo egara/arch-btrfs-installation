@@ -100,3 +100,38 @@ UUID=04293b56-e2f9-4d3b-aded-6baad666d5bb       none            swap            
 LABEL=arch      /mnt/defvol             btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache     0 0
 
 ```
+
+## Mkinitcpio ##
+In order to enable BTRFS on initramfs image, I added **btrfs** on HOOK inside **/etc/mkinitcpio.conf**. Then, it was necessary to execute **mkinitcpio -p linux** again.
+
+## Bootloader ##
+Because this is a UEFI laptop, [systemd-boot](https://wiki.archlinux.org/index.php/Systemd-boot) was used as a **bootloader**. First, it was necessary to install systemd-boot. /boot partition (/dev/sda1) was previously mounted, so it was only needed to execute **bootctl install**.
+Then, I edited **/boot/loader/loader.conf**. This is the final content of this file:
+
+```
+timeout 3
+default arch-btrfs
+editor 0
+```
+
+Then, I installed **intel-ucode** package because I have an Intel CPU as beginners guide says.
+
+Please, also note that **arch-btrfs** (above configuration) is the file created within **/boot/loader/entries** and its name is **arch-btrfs.conf**. This is the boot entry that we need to see Arch Linux option when the laptop boots, and the content of the file is:
+
+```
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /initramfs-linux.img
+options root=LABEL=arch rw rootflags=subvol=_active/rootvol
+```
+
+The line **initrd  /intel-ucode.img** enables Intel microcode updates (installed with intel-ucode package)
+
+Please note that the line **options root=LABEL=arch rw rootflags=subvol=_active/rootvol** assumes that root partition is installed in the labeled as arch, so here it is no necessary to use PUUID, UUID or the name of the partition, only the label (using LABEL variable).
+
+## Finish the steps in the Wiki ##
+And reboot!!
+
+## Configuration files ##
+In this repository you can find all the configuration files edited or created during the installation process.
