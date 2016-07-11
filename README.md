@@ -130,8 +130,14 @@ The line **initrd  /intel-ucode.img** enables Intel microcode updates (installed
 
 Please note that the line **options root=LABEL=arch rw rootflags=subvol=_active/rootvol** assumes that root partition is installed in the labeled as arch, so here it is no necessary to use PUUID, UUID or the name of the partition, only the label (using LABEL variable).
 
+## Additional packages installed ##
+A bunch of useful packages has been installed too: [tlp](https://wiki.archlinux.org/index.php/TLP) for energy saving and advanced power management, [reflector](https://wiki.archlinux.org/index.php/Reflector) for optimizing Arch mirrors repositories, [yaourt](http://www.ostechnix.com/install-yaourt-arch-linux/) for compiling and installing packages easily from AUR repository, [snapd](https://wiki.archlinux.org/index.php/Snapd) to install snap packages, [btrfs-progs](https://wiki.archlinux.org/index.php/Btrfs) to manage BTRFS filesystem.
+
 ## Finish the steps in the Wiki ##
 And reboot!!
 
+## Automated snapshots and system updates ##
+A very simple script has been created called **upgrade-system.sh** and stored within **/usr/bin/upgrade-system.sh** for system upgrades. Before starting the installation of the packages updated, the script creates a new snapshot. Then, pacman, yaourt and snapd are launched to upgrade the system. If something went wrong, you can restore the root filesystem using the last snapshot created. This script can be found [here](https://github.com/egara/arch-btrfs-installation/blob/master/files/upgrade-system.sh)
+
 ## Configuration files ##
-In this repository you can find all the configuration files edited or created during the installation process.
+In this [folder](https://github.com/egara/arch-btrfs-installation/tree/master/files) you can find all the configuration files edited or created during the installation process.
