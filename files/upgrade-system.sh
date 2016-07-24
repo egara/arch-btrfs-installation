@@ -1,3 +1,4 @@
+#!/bin/bash
 if hash btrfs 2>/dev/null; then
 	echo "Creating a read-only snapshot of the system. Please wait..."
 	sudo btrfs subvolume snapshot -r /mnt/defvol/_active/rootvol/ /mnt/defvol/_snapshots/root-$(date "+%F")

@@ -10,7 +10,7 @@ The installation has been done on a [Mountain Onyx](https://www.mountain.es/port
 - **CPU**: Intel® Core™ i7 6700HQ - 4C/8T
 - **RAM**: 8GB DDR3L 1600 SODIMM
 - **Hard Disk**: SSD 240GB M.2 550MB/s
-- **GPU**: Nvidia GTX 960M 2GB GDDR5
+- **GPU**: Nvidia GTX 960M 2GB GDDR5 + Intel i915 (Skylake)
 - **UEFI**
 
 ## First steps ##
@@ -141,3 +141,20 @@ A very simple script has been created called **upgrade-system.sh** and stored wi
 
 ## Configuration files ##
 In this [folder](https://github.com/egara/arch-btrfs-installation/tree/master/files) you can find all the configuration files edited or created during the installation process.
+
+## Re-installing the system ##
+The previous way didn't work as I expected. Because of /boot partition is independent, if you want to rollback to a previous snapshot with a different kernel installed there is a problem. I don't snapshot /boot, so there it is always the images generated for the last kernel installed. This is a problem! So I reinstalled the whole system disabling UEFI mode and enabling legacy BIOS. Then, I partitioned the system using only thre partitions: sda1 for / (inlcuidng boot partition), sda2 for swap and sda3 for home. sda1 is BTRFS, but because of the whole root system is stored there, now when I snapshot this partition, /boot is included and there is no problem with different kernel installations. I used GRUB as a boot loader.
+
+## Optimus installation ##
+The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX 960M. Then, it is interesting to have optimus technology enabled and working fine. This way, NVIDIA graphics card will only be used when a game is executed, saving power and extending battery life. These are the steps followed to have this technology working on this hardware (it was a little tricky)
+
+- Install video graphic drivers: [Intel](https://wiki.archlinux.org/index.php/intel_graphics#Installation) including vulkan support and [bumblebee with NVIDIA](https://wiki.archlinux.org/index.php/bumblebee#Installing_Bumblebee_with_Intel.2FNVIDIA)
+- Add a [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support)
+- Disable bumblebeed.service: **sudo systemctl disable bumblebeed.service**
+- Install bbswitch for graphic cards power management: **sudo pacman -S bbswitch**
+- I installed KDE, so I made a script in **/usr/bin/start-bumblebeed.sh** and I start it every time I login in KDE placing in **System Settings -> Startup and Shutdown -> Add script** and configuring it at **Startup**. This is the content of the script:
+
+```
+#!/bin/bash
+systemctl start bumblebeed.service
+```
