@@ -153,7 +153,6 @@ The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX
 - Disable bumblebeed.service: **sudo systemctl disable bumblebeed.service**
 - Install bbswitch for graphic cards power management: **sudo pacman -S bbswitch**
 - I installed KDE, so I made a script in **/usr/bin/start-bumblebeed.sh** and I start it every time I login in KDE placing in **System Settings -> Startup and Shutdown -> Add script** and configuring it at **Startup**. This is the content of the script:
-
 ```
 #!/bin/bash
 systemctl start bumblebeed.service
@@ -166,7 +165,6 @@ For using devicemapper:
 - Install docker
 - Create a file called **storage-driver.conf** within **/etc/systemd/system/docker.service.d/**. If the directory downs't exist, create the directory first.
 - This is the content of **storage-driver.conf**
-
 ```
 [Service]
 ExecStart=
@@ -174,16 +172,60 @@ ExecStart=/usr/bin/docker daemon -H fd:// --storage-driver=devicemapper
 ```
 
 - Create **/var/lib/docker/** and disable CoW (copy on write for BTRFS):
-
 ```
 sudo chattr +C /var/lib/docker
 ```
 
 - Enable and start the service
-
 ```
 sudo systemctl enable docker.service
 sudo systemctl start docker.service
 ```
 
 - Add your user to docker group in order to use docker command withou sudo superpowers!
+
+## Other tips ##
+
+- I have installed [Antergos](https://antergos.com/) (Arch-based distro easy to install and to go without too much configuration) on a PC that I needed to work inmediately. I used BTRFS too for the installation, but the problem is that you cannot choose the layout you want for your BTRFS volume. Instead, all the root system installed directly in the top volume itself, but I want a more refined layout (the layout defined above) in order to manage all the snapshots in a more proper way. Because of that, I detailed all the steps I made in order to mmigrate my installation to a customize layout.
+Once the system is installed, reboot and open a terminal to see the structure of the BTRFS volume for /:
+```
+sudo btrfs subvolume list /
+```
+Create all the subvolumes on / except rootvol subvolume:
+```
+btrfs subvolume create _active
+btrfs subvolume create _active/tmp
+btrfs subvolume create _snapshots
+```
+Now, it is necessary to make a read-write snapshot of / into _active/rootvol
+```
+sudo btrfs subvolume snapshot / /_active/rootvol
+```
+Modify fstab to reflect the changes (remember to modify / entry and point it to /_active/rootvol. Add /tmp line too). it is interesting to create a new directory within /mnt/defvol in order to mount the entire volume as it is described above too.
+Reboot the system using Archlinux LiveCD or Antergos LiveCD.
+Once the system is booted, mount all the structure within /mnt using as root /_active/rootvol (in my case, / is in /dev/sda1 and /home is in /dev/sdb2):
+```
+mount -o subvol=/_active/rootvol /dev/sda1 /mnt
+mount -o subvol=/_active/tmp /dev/sda1 /mnt/tmp
+mount /dev/sdb2 /mnt/home
+```
+Chroot the new system:
+```
+arch-chroot /mnt /bin/bash
+```
+Add **btrfs** as HOOK within /etc/mkinitcpio.conf and rebuild images:
+```
+mkinitcpio -p linux
+```
+Reinstall GRUB (in my case, the PC was installed in BIOS legacy mode and GRUB is installed on /dev/sda):
+```
+grub-install --target=i386-pc /dev/sda
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+Exit chroot and unmount everything.
+```
+exit
+umount /mnt -R
+```
+Reboot.
+Once the system is booted, check if / is pointing to /_active/rootvol. if everything is working fine, all the files within the root of the volume can be deleted using rm -rf boot bla bla bla. If systemd created the subvolume /var/lib/machines in the root of the volume, don't delete it and add it to fstab too.
