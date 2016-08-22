@@ -229,3 +229,4 @@ umount /mnt -R
 ```
 Reboot.
 Once the system is booted, check if / is pointing to /_active/rootvol. if everything is working fine, all the files within the root of the volume can be deleted using rm -rf boot bla bla bla. If systemd created the subvolume /var/lib/machines in the root of the volume, don't delete it and add it to fstab too.
+This is the [original post](http://unix.stackexchange.com/questions/62802/move-a-linux-instalation-using-btrfs-on-the-default-subvolume-subvolid-0-to-an) from I got the inspiration to do this stuff.
