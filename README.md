@@ -157,7 +157,8 @@ The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX
 #!/bin/bash
 systemctl start bumblebeed.service
 ```
-
+- For launching steam games and use NVIDIA graphics card, open Steam --> Library --> right click on the game you want to launnch --> Set Launch Options -> Type: **optirun -b primus %command%**
+- For launching wine games and use NVIDIA graphics card, launch the game with **env WINEPREFIX="/home/egarcia/.wine" /usr/bin/optirun -b primus wine C:\\windows\\command\\start.exe /Unix /home/egarcia/.wine/dosdevices/c:/users/Public/Escritorio/Hearthstone.lnk**
 ## Problem with Docker and BTRFS ##
 More than a problem is a caveat. If the main filesystem  for root is BTRFS, docker will use BTRFS storage driver (Docker selects the storage driver automatically depending on the system's configuration when it is installed) to create and manage all the docker images, layers and volumes. It is ok, but there is a problem with snapshots. Because **/var/lib/docker** is created to store all this stuff in a BTRFS subvolume which is into root subvolume, all this data won't be included within the snapshots. In order to allow all this data be part of the snapshots, we will change the storage driver used by Docker. It will be used **devicemapper**. Please, check out [this reference](https://docs.docker.com/engine/userguide/storagedriver/selectadriver/) in order to select the proper storage driver for you. You must know that depending on the filesystem you have for root, some of the storage drivers will not be allowed.
 
