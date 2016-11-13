@@ -146,10 +146,13 @@ In this [folder](https://github.com/egara/arch-btrfs-installation/tree/master/fi
 The previous way didn't work as I expected. Because of /boot partition is independent, if you want to rollback to a previous snapshot with a different kernel installed there is a problem. I don't snapshot /boot, so there it is always the images generated for the last kernel installed. This is a problem! So I reinstalled the whole system disabling UEFI mode and enabling legacy BIOS. Then, I partitioned the system using only thre partitions: sda1 for / (inlcuidng boot partition), sda2 for swap and sda3 for home. sda1 is BTRFS, but because of the whole root system is stored there, now when I snapshot this partition, /boot is included and there is no problem with different kernel installations. I used GRUB as a boot loader.
 
 ## Optimus installation ##
-The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX 960M. Then, it is interesting to have optimus technology enabled and working fine. This way, NVIDIA graphics card will only be used when a game is executed, saving power and extending battery life. These are the steps followed to have this technology working on this hardware (it was a little tricky)
+The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX 960M. Then, it is interesting to have optimus technology enabled and working fine. This way, NVIDIA graphics card will only be used when a game is executed, saving power and extending battery life. These are the steps followed to have this technology working on this hardware (it was a little tricky). 
+
+**Note: There is a problem with bbswitch, power management and kernel 4.8 as you can see [here](https://wiki.archlinux.org/index.php/bumblebee#Broken_power_management_with_kernel_4.8). You can try the proposed solution or install linux-lts and linux-lts-headers instead of normal kernel, nvidia-lts and bbswitch-lts from repository and have a LTS system instead of cutting edge**
 
 - Install video graphic drivers: [Intel](https://wiki.archlinux.org/index.php/intel_graphics#Installation) including vulkan support and [bumblebee with NVIDIA](https://wiki.archlinux.org/index.php/bumblebee#Installing_Bumblebee_with_Intel.2FNVIDIA)
-- Add a [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support)
+- Install [primus and lib32-primus](https://wiki.archlinux.org/index.php/bumblebee#Primusrun)
+- Add a [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/Kernel_parameters_(Espa%C3%B1ol)#GRUB) for [Skylake i915 GPU](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support)
 - Disable bumblebeed.service: **sudo systemctl disable bumblebeed.service**
 - Install bbswitch for graphic cards power management: **sudo pacman -S bbswitch**
 - I installed KDE, so I made a script in **/usr/bin/start-bumblebeed.sh** and I start it every time I login in KDE placing in **System Settings -> Startup and Shutdown -> Add script** and configuring it at **Startup**. This is the content of the script:
