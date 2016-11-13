@@ -102,7 +102,7 @@ LABEL=arch      /mnt/defvol             btrfs           rw,relatime,compress=lzo
 ```
 
 ## Mkinitcpio ##
-In order to enable BTRFS on initramfs image, I added **btrfs** on HOOK inside **/etc/mkinitcpio.conf**. Then, it was necessary to execute **mkinitcpio -p linux** again.
+In order to enable BTRFS on initramfs image, I added **btrfs** on HOOK inside **/etc/mkinitcpio.conf**. Then, it was necessary to execute **mkinitcpio -p linux** again. If you install linux-lts kernel (Long Term Support), you will have to execute **mkinitcpio -p linux-lts**
 
 ## Bootloader ##
 Because this is a UEFI laptop, [systemd-boot](https://wiki.archlinux.org/index.php/Systemd-boot) was used as a **bootloader**. First, it was necessary to install systemd-boot. /boot partition (/dev/sda1) was previously mounted, so it was only needed to execute **bootctl install**.
@@ -155,13 +155,13 @@ The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX
 - Add a [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/Kernel_parameters_(Espa%C3%B1ol)#GRUB) for [Skylake i915 GPU](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support)
 - Disable bumblebeed.service: **sudo systemctl disable bumblebeed.service**
 - Install bbswitch for graphic cards power management: **sudo pacman -S bbswitch**
-- I installed KDE, so I made a script in **/usr/bin/start-bumblebeed.sh** and I start it every time I login in KDE placing in **System Settings -> Startup and Shutdown -> Add script** and configuring it at **Startup**. This is the content of the script:
+- I installed KDE, so I made a script in **/usr/bin/start-bumblebeed.sh**, gave it execute permissions and I start it every time I login in KDE placing in **System Settings -> Startup and Shutdown -> Add script** and configuring it at **Startup**. This is the content of the script:
 ```
 #!/bin/bash
 systemctl start bumblebeed.service
 ```
-- For launching steam games and use NVIDIA graphics card, open Steam --> Library --> right click on the game you want to launnch --> Set Launch Options -> Type: **optirun -b primus %command%**
-- For launching wine games and use NVIDIA graphics card, launch the game with **env WINEPREFIX="/home/egarcia/.wine" /usr/bin/optirun -b primus wine C:\\windows\\command\\start.exe /Unix /home/egarcia/.wine/dosdevices/c:/users/Public/Escritorio/Hearthstone.lnk**
+- For launching Steam games and use NVIDIA graphics card, open Steam --> Library --> right click on the game you want to launnch --> Set Launch Options -> Type: **optirun -b primus %command%**
+- For launching wine games and use NVIDIA graphics card, launch the game with **env WINEPREFIX="/home/egarcia/.wine" /usr/bin/optirun -b primus wine C:\\windows\\command\\start.exe /Unix /home/egarcia/.wine/dosdevices/c:/users/Public/Escritorio/Hearthstone.lnk**. Another method is, for example to execute **Battle.net** with wine, execute de exe file using **optirun -b primus wine "C:\Program Files (x86)\Battle.net\Battle.net.exe"**
 
 ## Problem with Docker and BTRFS ##
 More than a problem is a caveat. If the main filesystem  for root is BTRFS, docker will use BTRFS storage driver (Docker selects the storage driver automatically depending on the system's configuration when it is installed) to create and manage all the docker images, layers and volumes. It is ok, but there is a problem with snapshots. Because **/var/lib/docker** is created to store all this stuff in a BTRFS subvolume which is into root subvolume, all this data won't be included within the snapshots. In order to allow all this data be part of the snapshots, we will change the storage driver used by Docker. It will be used **devicemapper**. Please, check out [this reference](https://docs.docker.com/engine/userguide/storagedriver/selectadriver/) in order to select the proper storage driver for you. You must know that depending on the filesystem you have for root, some of the storage drivers will not be allowed.
