@@ -152,7 +152,7 @@ The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX
 
 - Install video graphic drivers: [Intel](https://wiki.archlinux.org/index.php/intel_graphics#Installation) including vulkan support and [bumblebee with NVIDIA](https://wiki.archlinux.org/index.php/bumblebee#Installing_Bumblebee_with_Intel.2FNVIDIA)
 - Install [primus and lib32-primus](https://wiki.archlinux.org/index.php/bumblebee#Primusrun)
-- Add a [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/Kernel_parameters_(Espa%C3%B1ol)#GRUB) for [Skylake i915 GPU](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support)
+- Add a [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/Kernel_parameters_(Espa%C3%B1ol)#GRUB) for [Skylake i915 GPU](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support) and remove **quiet** parameter in order to see all the details of the booting process and check that evrything is OK.
 - Add modules **intel_agp** and **i915** (intel_agp must go always before i915) as you can see [here](https://wiki.archlinux.org/index.php/intel_graphics#Blank_screen_during_boot.2C_when_.22Loading_modules.22) within [mkinitcpio.conf](https://wiki.archlinux.org/index.php/Kernel_mode_setting#Early_KMS_start) in order to enable KMS during the initramfs stage. This will avoid a black screen and will prevent the system to freeze. Rebuild initramfs using **mkinitcpio -p linux** or **mkinitcpio -p linux-lts** depending on the kernel you have installed.
 - Disable bumblebeed.service: **sudo systemctl disable bumblebeed.service**
 - Install bbswitch for graphic cards power management: **sudo pacman -S bbswitch**
