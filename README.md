@@ -208,7 +208,7 @@ For using devicemapper:
 ```
 [Service]
 ExecStart=
-ExecStart=/usr/bin/docker daemon -H fd:// --storage-driver=devicemapper
+ExecStart=/usr/bin/dockerd -H fd:// --storage-driver=devicemapper
 ```
 
 - Create **/var/lib/docker/** and disable CoW (copy on write for BTRFS):
