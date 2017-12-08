@@ -174,6 +174,9 @@ For the graphics cards installation and Optimius:
 - For launching Steam games and use NVIDIA graphics card, open Steam --> Library --> right click on the game you want to launnch --> Set Launch Options -> Type: **optirun -b primus %command%**
 - For launching wine games and use NVIDIA graphics card, launch the game with **env WINEPREFIX="/home/egarcia/.wine" /usr/bin/optirun -b primus wine C:\\windows\\command\\start.exe /Unix /home/egarcia/.wine/dosdevices/c:/users/Public/Escritorio/Hearthstone.lnk**. Another method is, for example to execute **Battle.net** with wine, execute de exe file using **optirun -b primus wine "C:\Program Files (x86)\Battle.net\Battle.net.exe"**
 
+### Resources ##
+[Antergos Wiki for Bumblebee, NVIDIA and Optimus](https://antergos.com/wiki/hardware/bumblebee-for-nvidia-optimus/)
+
 ## Bluetooth installation ##
 Normally, bluetooth chipset (intel/ibt-11-5.sfi) should work out of the box, but there is a problem loading **btusb** kernel module. In order to make it work, it is necessary to create a script in **/usr/bin** called **start-bluetooth.sh** with this content:
 
