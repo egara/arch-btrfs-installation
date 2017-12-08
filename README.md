@@ -145,28 +145,37 @@ In this [folder](https://github.com/egara/arch-btrfs-installation/tree/master/fi
 ## Re-installing the system ##
 The previous way didn't work as I expected. Because of /boot partition is independent, if you want to rollback to a previous snapshot with a different kernel installed there is a problem. I don't snapshot /boot, so there it is always the images generated for the last kernel installed. This is a problem! So I reinstalled the whole system disabling UEFI mode and enabling legacy BIOS. Then, I partitioned the system using only thre partitions: sda1 for / (inlcuidng boot partition), sda2 for swap and sda3 for home. sda1 is BTRFS, but because of the whole root system is stored there, now when I snapshot this partition, /boot is included and there is no problem with different kernel installations. I used GRUB as a boot loader.
 
-## Optimus installation ##
-The laptop has two graphic cards: Integrated: Intel i915 and discrete NVIDIA GTX 960M. Then, it is interesting to have optimus technology enabled and working fine. This way, NVIDIA graphics card will only be used when a game is executed, saving power and extending battery life. These are the steps followed to have this technology working on this hardware (it was a little tricky). 
+## Graphics and Optimus installation ##
+The laptop has two graphic cards: Integrated: **Intel i915** and discrete **NVIDIA GTX 960M**. Then, it is interesting to have optimus technology enabled and working fine. This way, NVIDIA graphics card will only be used when a game is executed, saving power and extending battery life. These are the steps followed to have this technology working on this hardware (it was a little tricky). 
 
-**Note: There is a problem with bbswitch, power management and kernel 4.8 as you can see [here](https://wiki.archlinux.org/index.php/bumblebee#Broken_power_management_with_kernel_4.8). You can try the proposed solution or install linux-lts and linux-lts-headers instead of normal kernel, nvidia-lts and bbswitch-lts from repository and have a LTS system instead of cutting edge**
+++Note:++ For a stable installation, it is recommended a LTS system instead of a cutting edge one. Because of this, I installed **linux-lts** and **linux-lts-headers** instead of normal kernel and **nvidia-lts** and **bbswitch-lts** from the repository.
+
+For the graphics cards installation and Optimius:
 
 - Install video graphic drivers: [Intel](https://wiki.archlinux.org/index.php/intel_graphics#Installation) including vulkan support and [bumblebee with NVIDIA](https://wiki.archlinux.org/index.php/bumblebee#Installing_Bumblebee_with_Intel.2FNVIDIA)
+
 - Install [primus and lib32-primus](https://wiki.archlinux.org/index.php/bumblebee#Primusrun)
-- Add a [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/Kernel_parameters#GRUB) for [Skylake i915 GPU](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support) and remove **quiet** parameter in order to see all the details of the booting process and check that evrything is OK.
-- If you are using kernel 4.8 or higher, add this [kernel boot parameter in GRUB](https://wiki.archlinux.org/index.php/Kernel_parameters#GRUB) **pcie_port_pm=off** as you can see [here](https://wiki.archlinux.org/index.php/NVIDIA/Troubleshooting#Modprobe_Error:_.22Could_not_insert_.27nvidia.27:_No_such_device.22_on_linux_.3E.3D4.8) for avoiding error **"Could not insert 'nvidia': No such device"**
+- We will add three [kernel boot parameters in GRUB](https://wiki.archlinux.org/index.php/Kernel_parameters#GRUB). Edit **/etc/default/grub** and change **GRUB_CMDLINE_LINUX_DEFAULT**. The line should be like this (I have removed **quiet** in order to see all the details of the booting process and check that evrything is OK):
+
+      GRUB_CMDLINE_LINUX_DEFAULT="i915.enable_rc6=0 pcie_port_pm=off acpi_osi=\"!Windows 2015\""
+
+  The three kernel boot parameters added are:
+
+  - Kernel boot parameter for [Skylake i915 GPU](https://wiki.archlinux.org/index.php/intel_graphics#Skylake_support).
+  - If you are using kernel 4.8 or higher, add kernel boot parameter **pcie_port_pm=off** as you can see [here](https://wiki.archlinux.org/index.php/NVIDIA/Troubleshooting#Modprobe_Error:_.22Could_not_insert_.27nvidia.27:_No_such_device.22_on_linux_.3E.3D4.8) for avoiding error **"Could not insert 'nvidia': No such device"**
+  - Kernel boot parameter **acpi_osi=\"!Windows 2015\"** for avoiding the system freezes when we enable bumblebeed.service.
+
+  Finally, execute **sudo grub-mkconfig -o /boot/grub/grub.cfg** in order to rebuild grub configuration with all these changes.
+  
 - Add modules **intel_agp** and **i915** (intel_agp must go always before i915) as you can see [here](https://wiki.archlinux.org/index.php/intel_graphics#Blank_screen_during_boot.2C_when_.22Loading_modules.22) within [mkinitcpio.conf](https://wiki.archlinux.org/index.php/Kernel_mode_setting#Early_KMS_start) in order to enable KMS during the initramfs stage. This will avoid a black screen and will prevent the system to freeze. Rebuild initramfs using **mkinitcpio -p linux** or **mkinitcpio -p linux-lts** depending on the kernel you have installed.
-- Disable bumblebeed.service: **sudo systemctl disable bumblebeed.service**
-- Install bbswitch for graphic cards power management: **sudo pacman -S bbswitch**
-- I installed KDE, so I made a script in **/usr/bin/start-bumblebeed.sh**, gave it execute permissions and I start it every time I login in KDE placing in **System Settings -> Startup and Shutdown -> Add script** and configuring it at **Startup**. This is the content of the script:
-```
-#!/bin/bash
-systemctl start bumblebeed.service
-```
+
+- Install **bbswitch** for graphic cards power management: **sudo pacman -S bbswitch**
+
 - For launching Steam games and use NVIDIA graphics card, open Steam --> Library --> right click on the game you want to launnch --> Set Launch Options -> Type: **optirun -b primus %command%**
 - For launching wine games and use NVIDIA graphics card, launch the game with **env WINEPREFIX="/home/egarcia/.wine" /usr/bin/optirun -b primus wine C:\\windows\\command\\start.exe /Unix /home/egarcia/.wine/dosdevices/c:/users/Public/Escritorio/Hearthstone.lnk**. Another method is, for example to execute **Battle.net** with wine, execute de exe file using **optirun -b primus wine "C:\Program Files (x86)\Battle.net\Battle.net.exe"**
 
 ## Bluetooth installation ##
-Normally, bluetooth chipset (intel/ibt-11-5.sfi) should work out of the box, but there is a problema loading **btusb** kernel module. In order to make it work, it is necessary to create a script in **/usr/bin** called **start-bluetooth.sh** with this content:
+Normally, bluetooth chipset (intel/ibt-11-5.sfi) should work out of the box, but there is a problem loading **btusb** kernel module. In order to make it work, it is necessary to create a script in **/usr/bin** called **start-bluetooth.sh** with this content:
 
 ```
 #!/bin/bash
