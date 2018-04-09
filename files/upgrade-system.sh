@@ -16,7 +16,7 @@ else
     echo "yaourt not installed. Please, install it."
 fi
 
-if hash yaourt 2>/dev/null; then
+if hash snap 2>/dev/null; then
 	echo "Upgrading snap packages. Please wait..."
 	sudo snap refresh
 else
