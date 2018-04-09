@@ -169,7 +169,7 @@ For the graphics cards installation and Optimius:
   
 - Add modules **intel_agp** and **i915** (intel_agp must go always before i915) as you can see [here](https://wiki.archlinux.org/index.php/intel_graphics#Blank_screen_during_boot.2C_when_.22Loading_modules.22) within [mkinitcpio.conf](https://wiki.archlinux.org/index.php/Kernel_mode_setting#Early_KMS_start) in order to enable KMS during the initramfs stage. This will avoid a black screen and will prevent the system to freeze. Rebuild initramfs using **mkinitcpio -p linux** or **mkinitcpio -p linux-lts** depending on the kernel you have installed.
 
-- Install **bbswitch** for graphic cards power management: **sudo pacman -S bbswitch**
+- Install **bbswitch** for graphic cards power management: **sudo pacman -S bbswitch** (if you are using linux-lts or custom kernel, **bbswitch-dkms** is recommended)
 
 - For launching Steam games and use NVIDIA graphics card, open Steam --> Library --> right click on the game you want to launnch --> Set Launch Options -> Type: **optirun -b primus %command%**
 - For launching wine games and use NVIDIA graphics card, launch the game with **env WINEPREFIX="/home/egarcia/.wine" /usr/bin/optirun -b primus wine C:\\windows\\command\\start.exe /Unix /home/egarcia/.wine/dosdevices/c:/users/Public/Escritorio/Hearthstone.lnk**. Another method is, for example to execute **Battle.net** with wine, execute de exe file using **optirun -b primus wine "C:\Program Files (x86)\Battle.net\Battle.net.exe"**
