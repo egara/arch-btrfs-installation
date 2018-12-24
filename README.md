@@ -142,6 +142,9 @@ A very simple script has been created called **upgrade-system.sh** and stored wi
 ## Configuration files ##
 In this [folder](https://github.com/egara/arch-btrfs-installation/tree/master/files) you can find all the configuration files edited or created during the installation process.
 
+## ButterManager ##
+Recently I have developed a graphical tool for creating BTRFS snapshots, balancing filesystems and upgrading the system safetly. It works in **Arch Linux** and **Debian**, **Ubuntu** or derivatives. For more information, please [check ButterManager](https://github.com/egara/buttermanager).
+
 ## Re-installing the system ##
 The previous way didn't work as I expected. Because of /boot partition is independent, if you want to rollback to a previous snapshot with a different kernel installed there is a problem. I don't snapshot /boot, so there it is always the images generated for the last kernel installed. This is a problem! So I reinstalled the whole system disabling UEFI mode and enabling legacy BIOS. Then, I partitioned the system using only thre partitions: sda1 for / (inlcuidng boot partition), sda2 for swap and sda3 for home. sda1 is BTRFS, but because of the whole root system is stored there, now when I snapshot this partition, /boot is included and there is no problem with different kernel installations. I used GRUB as a boot loader.
 
