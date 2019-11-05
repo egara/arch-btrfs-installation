@@ -1,6 +1,8 @@
 # Arch installation on a BTRFS root filesystem
 This is a cheatsheet with all the instructions to perform an installation of Arch Linux using BTRFS filesystem in /
 
+Please, read **the entire document** before proceding because it icludes two different approaches.
+
 [TOC]
 
 ## Laptop model ##
