@@ -9,11 +9,11 @@ fi
 echo "Upgrading the system. Please wait..."
 sudo pacman -Syu --noconfirm
 
-if hash yaourt 2>/dev/null; then
+if hash yay 2>/dev/null; then
 	echo "Upgrading the system from AUR. Please wait..."
-	yaourt -Syua --noconfirm
+	yay -Syua --noconfirm
 else
-    echo "yaourt not installed. Please, install it."
+    echo "yay not installed. Please, install it."
 fi
 
 if hash snap 2>/dev/null; then

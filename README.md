@@ -1,11 +1,11 @@
 # Arch installation on a BTRFS root filesystem
 This is a cheatsheet with all the instructions to perform an installation of Arch Linux using BTRFS filesystem in /
 
-Please, read **the entire document** before proceding because it icludes two different approaches.
+Please, read **the entire document** before proceeding because it icludes two different approaches. The key is to include /boot directory in the snapshots for root in order to be able to rollback the entire system without any problem it it is needed. Lets proceed!
 
 [TOC]
 
-## Laptop model ##
+## Laptop model
 The installation has been done on a [Mountain Onyx](https://www.mountain.es/portatiles/onyx) laptop.
 
 - **Screen**: 15,6" Full HD IPS Mate
@@ -15,24 +15,23 @@ The installation has been done on a [Mountain Onyx](https://www.mountain.es/port
 - **GPU**: Nvidia GTX 960M 2GB GDDR5 + Intel i915 (Skylake)
 - **UEFI**
 
-## First steps ##
-I have been following [Arch Wiki Beginner's Guide](https://wiki.archlinux.org/index.php/beginners'_guide). Arch ISO booted in UEFI mode using **systemd-boot**. It was configured a wired connection too.
+## Approach 1 [UEFI, GPT and GRUB]
+I have been following [Official Arch Installation Guide](https://wiki.archlinux.org/index.php/Installation_guide). Arch ISO booted in UEFI mode using **systemd-boot**. It was configured a wired connection too.
 
-## Partitioning ##
+### Partitioning
 This is the selected layout for the UEFI/GPT system:
 
-| Mount point | Partition | Partition type      | Bootable flag | Size   |
-|-------------|-----------|---------------------|---------------|--------|
-| /boot       | /dev/sda1 | EFI System Partition| Yes           | 512 MiB|
-| [SWAP]      | /dev/sda2 | Linux swap          | No            | 16 GiB |
-| /           | /dev/sda3 | Linux (BTRFS)       | No            | 30 GiB |
-| /home       | /dev/sda4 | Linux (EXT4)        | No            | 192 GiB|
+| Mount point | Partition | Partition type | FS Type     | Bootable flag | Size   |
+|-------------|-----------|---------------------|-----------|----|--------|
+| /boot/efi       | /dev/sda1 | EFI System Partition| FAT32 | Yes           | 512 MiB|
+| [SWAP]      | /dev/sda2 | Linux swap | SWAP          | No            | 16 GiB |
+| /           | /dev/sda3 | Linux | BTRFS       | No            | 222 GiB |
 
-After creating the partitions, it was necessary to format them. Again, I followed the guide without a problem.
+After creating the partitions using [fdisk](https://wiki.archlinux.org/index.php/Fdisk), it was necessary to format them. Again, I followed the guide without a problem.
 
-**IMPORTANT**: I used **-L** option with *mkfs* command in order to create a label for **/** (arch) and **/home** (home) partitions. It is important because fstab and the file needed to set up systemd-boot are configured to point those labels.
+**IMPORTANT**: I used **-L** option with *mkfs* command in order to create a label for **/** (called **arch**).
 
-## BTRFS layout ##
+### BTRFS layout
 The only partition formated with BTRFS was /dev/sda3, which contains the whole root system. BTRFS was selected to enable snapshots support in order to avoid any possible problem with Arch updates. Sometimes, I have experimented that certain critical package updates can break the system. If it occurs, it is a good idea to have some snapshot to rollback the entire root filesystem. tmp subvolume has been created in order to avoid the inclusion of temporal files within the snapshots of rootvol. tmp snapshots never will be created, because all the files stored within tmp are temporal. This is the layout defined:
 
 ```
@@ -42,6 +41,7 @@ sda3 (Volume)
 - _active (Subvolume)
 |    |
 |    - rootvol (Subvolume - It will be the current /)
+|    - homevol (Subvolume - it will be the current /home)
 |    |
 |    - tmp (Subvolume - It will be the current /tmp)
 |
@@ -56,99 +56,88 @@ mount /dev/sda3 /mnt
 cd /mnt
 btrfs subvolume create _active
 btrfs subvolume create _active/rootvol
+btrfs subvolume create _active/homevol
 btrfs subvolume create _active/tmp
 btrfs subvolume create _snapshots
 ```
 
-Next, mount all the partitions (/boot included) in order to start the installation:
+Next, create all the directories needed and mount all the partitions (/boot/efi included) in order to start the installation:
 
 ```
 cd
 umount /mnt
 mount -o subvol=_active/rootvol /dev/sda3 /mnt
 mkdir /mnt/{home,tmp,boot}
+mkdir /mnt/boot/efi
+mkdir /mnt/mnt/defvol
 mount -o subvol=_active/tmp /dev/sda3 /mnt/tmp
-mount /dev/sda1 /mnt/boot
-mount /dev/sda4 /mnt/home
+mount /dev/sda1 /mnt/boot/efi
+mount -o subvol=_active/homevol /dev/sda3 /mnt/home
 ```
 
-## Installing Arch Linux ##
-Proceed with installing Arch Linux (Installation section within Beginner's guide).
+### Installing Arch Linux
+Proceed with the installation according to the official guide.
 
-## Fstab ##
-After executing *genfstab -U /mnt >> /mnt/etc/fstab* to generate fstab file using **UUIDs** for the partitions, I edited fstab and this is the result (please note that for those partitions which have a label defined, this label has been used)
+### Fstab
+After executing *genfstab -U /mnt >> /mnt/etc/fstab* to generate fstab file using **UUIDs** for the partitions, I edited fstab in order to remove completely **subvolids** for example (they are not needed and it makes rollback much more easy) and adding compression to BTRFS mounted points and this is the result. Please, be aware of **/mnt/defvol** mounting point. This directory is very important because the WHOLE BTRFS volume will be mounted here and you will have access to all subvolumes and snapshots created after the installation)
 
 ```
-#
-# /etc/fstab: static file system information
-#
-# <file system> <dir>   <type>  <options>       <dump>  <pass>
-# /dev/sda3
-LABEL=arch      /               btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/rootvol     0 0
+# /dev/sda3 LABEL=arch
+UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /               btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/rootvol     0 0
 
 # /dev/sda1
-UUID=C679-F6A0          /boot           vfat            rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro    0 2
+UUID=3074-C66B          /boot/efi       vfat            rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro       0 2
 
-# /dev/sda3
-LABEL=arch      /tmp            btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/tmp 0 0
+# /dev/sda3 LABEL=arch
+UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /tmp            btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/tmp 0 0
 
-# /dev/sda4
-LABEL=home       /home           ext4            rw,relatime,data=ordered        0 2
+# /dev/sda3 LABEL=arch
+UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /home           btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/homevol     0 0
 
 # /dev/sda2
-UUID=04293b56-e2f9-4d3b-aded-6baad666d5bb       none            swap            defaults        0 0
+UUID=9943adc7-d8a5-4500-bb35-3179aca961f5       none            swap            defaults        0 0
 
-# /dev/sda3 LABEL=arch volume
-LABEL=arch      /mnt/defvol             btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache     0 0
-
+UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /mnt/defvol     btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/        0 0
 ```
 
-## Mkinitcpio ##
+### Mkinitcpio
 In order to enable BTRFS on initramfs image, I added **btrfs** on HOOK inside **/etc/mkinitcpio.conf**. Then, it was necessary to execute **mkinitcpio -p linux** again. If you install linux-lts kernel (Long Term Support), you will have to execute **mkinitcpio -p linux-lts**
 
-## Bootloader ##
-Because this is a UEFI laptop, [systemd-boot](https://wiki.archlinux.org/index.php/Systemd-boot) was used as a **bootloader**. First, it was necessary to install systemd-boot. /boot partition (/dev/sda1) was previously mounted, so it was only needed to execute **bootctl install**.
-Then, I edited **/boot/loader/loader.conf**. This is the final content of this file:
+### Microcode
+I installed **intel-ucode** package because I have an Intel CPU.
 
-```
-timeout 3
-default arch-btrfs
-editor 0
-```
+### Bootloader
+If you want to have BTRFS snapshots integrated from booting you will have to install GRUB. Thanks to [grub-btrfs](https://www.archlinux.org/packages/community/any/grub-btrfs/) package, you will be able to boot your system directly from any snapshot of ROOT created. All these snapshots will be populated in the GRUB menu.
 
-Then, I installed **intel-ucode** package because I have an Intel CPU as beginners guide says.
+GRUB is totally compatible with EFI systems. Install **grub** and **efibootmgr**:
 
-Please, also note that **arch-btrfs** (above configuration) is the file created within **/boot/loader/entries** and its name is **arch-btrfs.conf**. This is the boot entry that we need to see Arch Linux option when the laptop boots, and the content of the file is:
+    pacman -S grub efibootmgr
 
-```
-title   Arch Linux
-linux   /vmlinuz-linux
-initrd  /intel-ucode.img
-initrd  /initramfs-linux.img
-options root=LABEL=arch rw rootflags=subvol=_active/rootvol
-```
+Install the GRUB EFI application executing this command (please, choose the directory where EFI application will be stored, in my case **/boot/efi**, the partition created before):
 
-The line **initrd  /intel-ucode.img** enables Intel microcode updates (installed with intel-ucode package)
+    grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
-Please note that the line **options root=LABEL=arch rw rootflags=subvol=_active/rootvol** assumes that root partition is installed in the labeled as arch, so here it is no necessary to use PUUID, UUID or the name of the partition, only the label (using LABEL variable).
+Generate the main **grub.cfg** configuration file:
 
-## Additional packages installed ##
-A bunch of useful packages has been installed too: [tlp](https://wiki.archlinux.org/index.php/TLP) for energy saving and advanced power management, [reflector](https://wiki.archlinux.org/index.php/Reflector) for optimizing Arch mirrors repositories, [yaourt](http://www.ostechnix.com/install-yaourt-arch-linux/) for compiling and installing packages easily from AUR repository, [snapd](https://wiki.archlinux.org/index.php/Snapd) to install snap packages, [btrfs-progs](https://wiki.archlinux.org/index.php/Btrfs) to manage BTRFS filesystem.
+    grub-mkconfig -o /boot/grub/grub.cfg
 
-## Finish the steps in the Wiki ##
+
+### Additional packages installed
+A bunch of useful packages has been installed too: [tlp](https://wiki.archlinux.org/index.php/TLP) for energy saving and advanced power management, [reflector](https://wiki.archlinux.org/index.php/Reflector) for optimizing Arch mirrors repositories, [yay](https://newbloghosting.com/how-to-install-yay-on-arch-linux/) for compiling and installing packages easily from AUR repository, [snapd](https://wiki.archlinux.org/index.php/Snapd) to install snap packages, [btrfs-progs](https://wiki.archlinux.org/index.php/Btrfs) to manage BTRFS filesystem.
+
+### Finish the steps in the Wiki
 And reboot!!
 
-## Automated snapshots and system updates ##
-A very simple script has been created called **upgrade-system.sh** and stored within **/usr/bin/upgrade-system.sh** for system upgrades. Before starting the installation of the packages updated, the script creates a new snapshot. Then, pacman, yaourt and snapd are launched to upgrade the system. If something went wrong, you can restore the root filesystem using the last snapshot created. This script can be found [here](https://github.com/egara/arch-btrfs-installation/blob/master/files/upgrade-system.sh)
+### Automated snapshots and system updates
+Recently I have developed a graphical tool for creating BTRFS snapshots, balancing filesystems and upgrading the system safetly. It works in **Arch Linux** and **Debian**, **Ubuntu** or derivatives. For more information, please [check ButterManager](https://github.com/egara/buttermanager). Please, read [the documentation](https://github.com/egara/buttermanager) in order to configure it before the first use.
 
-## Configuration files ##
+If you prefer another option, I have also created a very simple script called **upgrade-system.sh**. You can store it within **/usr/bin/upgrade-system.sh** and it can be invoked for performing system upgrades. Before starting the installation of the packages updated, the script creates a new snapshot. Then, pacman, yay and snapd are launched to upgrade the system. If something went wrong, you can restore the root filesystem using the last snapshot created. This script can be found [here](https://github.com/egara/arch-btrfs-installation/blob/master/files/upgrade-system.sh)
+
+### Configuration files
 In this [folder](https://github.com/egara/arch-btrfs-installation/tree/master/files) you can find all the configuration files edited or created during the installation process.
 
-## ButterManager ##
-Recently I have developed a graphical tool for creating BTRFS snapshots, balancing filesystems and upgrading the system safetly. It works in **Arch Linux** and **Debian**, **Ubuntu** or derivatives. For more information, please [check ButterManager](https://github.com/egara/buttermanager).
-
-## Re-installing the system ##
-The previous way didn't work as I expected. Because of /boot partition is independent, if you want to rollback to a previous snapshot with a different kernel installed there is a problem. I don't snapshot /boot, so there it is always the images generated for the last kernel installed. This is a problem! So I reinstalled the whole system disabling UEFI mode and enabling legacy BIOS. Then, I partitioned the system using only thre partitions: sda1 for / (inlcuidng boot partition), sda2 for swap and sda3 for home. sda1 is BTRFS, but because of the whole root system is stored there, now when I snapshot this partition, /boot is included and there is no problem with different kernel installations. I used GRUB as a boot loader.
+## Approach 2 [BIOS,MBR and GRUB] ##
+First, it was necessary to disable UEFI mode and enabling legacy BIOS. Then, I partitioned the system using only two partitions: sda1 for / (including boot partition and home and sda2 for swap. I installed [GRUB as a boot loader](https://wiki.archlinux.org/index.php/GRUB#Master_Boot_Record_(MBR)_specific_instructions).
 
 ## Graphics and Optimus installation ##
 The laptop has two graphic cards: Integrated: **Intel i915** and discrete **NVIDIA GTX 960M**. Then, it is interesting to have optimus technology enabled and working fine. This way, NVIDIA graphics card will only be used when a game is executed, saving power and extending battery life. These are the steps followed to have this technology working on this hardware (it was a little tricky). 
