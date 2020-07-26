@@ -230,7 +230,7 @@ sudo systemctl start docker.service
 
 - Add your user to docker group in order to use docker command withou sudo superpowers!
 
-## Pulseaudio high battery consuption ##
+## Pulseaudio high battery consuption
 Using **Energy Information** application provided by KDE Plasma, I realized that pulseaudio daemon was eating the energy of my battery in a very strange way. Then I realized that it was a bug described [here](https://bugs.launchpad.net/ubuntu/+source/linux/+bug/877560). To fix this bug, it is necessary to manually force power save for the audio codec:
 
 - Before proceeding, in a terminal launch the following command:
@@ -250,7 +250,17 @@ Using **Energy Information** application provided by KDE Plasma, I realized that
 
 - Log out and log in again to get pulseaudio restarted.
 
-## Restructuring BTRFS Layout on Antergos or another distribution ##
+
+## No sound over the headphones after suspending
+This laptop is a Clevo and there is a known issue about this model: after suspending, there is no sound over the headphones anymore.
+
+To solve this issue:
+
+    yay -S init-headphones
+    sudo systemctl start init-headphones
+    sudo systemctl enable init-headphones
+
+## Restructuring BTRFS Layout on Antergos or another distribution
 
 - I have installed [Antergos](https://antergos.com/) (Arch-based distro easy to install and to go without too much configuration) on a PC (using BIOS legacy mode instead UEFI) that I needed to work inmediately. I used BTRFS too for the installation, but the problem is that you cannot choose the layout you want for your BTRFS volume. Instead, all the root system is installed directly in the top volume itself, but I want a more refined layout (the layout defined above) in order to manage all the snapshots in a more proper way. Because of that, I detailed all the steps I made in order to mmigrate my installation to a customize layout.
 Once the system is installed, reboot and open a terminal to see the structure of the BTRFS volume for /:
