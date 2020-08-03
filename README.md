@@ -89,10 +89,10 @@ UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /               btrfs           
 UUID=3074-C66B          /boot/efi       vfat            rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro       0 2
 
 # /dev/sda3 LABEL=arch
-UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /tmp            btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/tmp 0 0
+UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /tmp            btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=_active/tmp 0 0
 
 # /dev/sda3 LABEL=arch
-UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /home           btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/_active/homevol     0 0
+UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /home           btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=_active/homevol     0 0
 
 # /dev/sda2
 UUID=9943adc7-d8a5-4500-bb35-3179aca961f5       none            swap            defaults        0 0
@@ -308,8 +308,8 @@ Modify **fstab** to reflect the changes (remember to modify / entry and point it
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
 #
 UUID=238a2358-8bf6-47a9-907f-47eaece88632 /home ext4 defaults,rw,relatime,data=ordered 0 0
-UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b / btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=/_active/rootvol 0 0
-UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b /tmp btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=/_active/tmp 0 0
+UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b / btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=_active/rootvol 0 0
+UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b /tmp btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=_active/tmp 0 0
 UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b /var/lib/machines btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=/var/lib/machines 0 0
 UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b /mnt/defvol btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=/ 0 0
 UUID=4621e43f-3b86-4fa2-9d9e-823a564572f4 swap swap defaults 0 0
