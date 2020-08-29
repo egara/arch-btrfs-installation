@@ -1,7 +1,7 @@
 # Arch installation on a BTRFS root filesystem
 This is a cheatsheet with all the instructions to perform an installation of Arch Linux using BTRFS filesystem in /
 
-Please, read **the entire document** before proceeding because it icludes two different approaches. The key is to include /boot directory in the snapshots for root in order to be able to rollback the entire system without any problem it it is needed. Lets proceed!
+Please, read **the entire document** before proceeding because it includes two different approaches. The key is to include /boot directory in the snapshots for root in order to be able to rollback the entire system without any problem it it is needed. Lets proceed!
 
 [TOC]
 
