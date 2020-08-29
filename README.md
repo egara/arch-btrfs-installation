@@ -121,6 +121,13 @@ Generate the main **grub.cfg** configuration file:
 
     grub-mkconfig -o /boot/grub/grub.cfg
 
+### /tmp folder
+Because of **/tmp** is another subvolume mounted as a traditional partition on */fstab*, temporary files won't be deleted by default when the system boots. This can cause some problems like preventing **insync** to start normally for example, because it uses a temporary file called *insync1000.sock* and if this file already exists, it won't run. In order to clean up */tmp* directory on every reboot, add this configuration file **/etc/tmpfiles.d/tmp.conf** with this content:
+
+```
+# Cleaining up /tmp directory everytime system boots
+D! /tmp 1777 root root 0
+```
 
 ### Additional packages installed
 A bunch of useful packages has been installed too: [tlp](https://wiki.archlinux.org/index.php/TLP) for energy saving and advanced power management, [reflector](https://wiki.archlinux.org/index.php/Reflector) for optimizing Arch mirrors repositories, [yay](https://newbloghosting.com/how-to-install-yay-on-arch-linux/) for compiling and installing packages easily from AUR repository, [snapd](https://wiki.archlinux.org/index.php/Snapd) to install snap packages, [btrfs-progs](https://wiki.archlinux.org/index.php/Btrfs) to manage BTRFS filesystem.
