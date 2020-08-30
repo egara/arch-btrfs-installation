@@ -267,6 +267,14 @@ To solve this issue:
     sudo systemctl start init-headphones
     sudo systemctl enable init-headphones
 
+After this, edit **/etc/default/grub** and add this flag to **GRUB_CMDLINE_LINUX_DEFAULT**:
+
+    acpi_enforce_resources=lax
+    
+Then, rebuild grub configuration:
+
+    sudo grub-mkconfig -o /boot/grub/grub.cfg
+    
 ## Restructuring BTRFS Layout on Antergos or another distribution
 
 - I have installed [Antergos](https://antergos.com/) (Arch-based distro easy to install and to go without too much configuration) on a PC (using BIOS legacy mode instead UEFI) that I needed to work inmediately. I used BTRFS too for the installation, but the problem is that you cannot choose the layout you want for your BTRFS volume. Instead, all the root system is installed directly in the top volume itself, but I want a more refined layout (the layout defined above) in order to manage all the snapshots in a more proper way. Because of that, I detailed all the steps I made in order to mmigrate my installation to a customize layout.
