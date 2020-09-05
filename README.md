@@ -172,6 +172,8 @@ For the graphics cards installation and Optimius:
 
 - Install **bbswitch** for graphic cards power management: **sudo pacman -S bbswitch** (if you are using linux-lts or custom kernel, **bbswitch-dkms** is recommended)
 
+- Finally, execute **lspci** and take note of the ID for the NVIDIA card (01:00.1 in my case for example). Edit this file **sudo nano /etc/bumblebee/xorg.conf.nvidia** and uncomment the line **BusID "PCI:01:00:0"** writing there the ID you obtained before.
+
 - For launching Steam games and use NVIDIA graphics card, open Steam --> Library --> right click on the game you want to launnch --> Set Launch Options -> Type: **optirun -b primus %command%**
 - For launching wine games and use NVIDIA graphics card, launch the game with **env WINEPREFIX="/home/egarcia/.wine" /usr/bin/optirun -b primus wine C:\\windows\\command\\start.exe /Unix /home/egarcia/.wine/dosdevices/c:/users/Public/Escritorio/Hearthstone.lnk**. Another method is, for example to execute **Battle.net** with wine, execute de exe file using **optirun -b primus wine "C:\Program Files (x86)\Battle.net\Battle.net.exe"**
 
