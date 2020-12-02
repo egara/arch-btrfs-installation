@@ -64,7 +64,7 @@ btrfs subvolume create _snapshots
 Next, create all the directories needed and mount all the partitions (/boot/efi included) in order to start the installation:
 
 ```
-cd
+cd ..
 umount /mnt
 mount -o subvol=_active/rootvol /dev/sda3 /mnt
 mkdir /mnt/{home,tmp,boot}
@@ -73,6 +73,7 @@ mkdir /mnt/mnt/defvol
 mount -o subvol=_active/tmp /dev/sda3 /mnt/tmp
 mount /dev/sda1 /mnt/boot/efi
 mount -o subvol=_active/homevol /dev/sda3 /mnt/home
+mount -o subvol=/ /dev/sda3 /mnt/mnt/defvol
 ```
 
 ### Installing Arch Linux
