@@ -42,9 +42,6 @@ sda3 (Volume)
 |    |
 |    - rootvol (Subvolume - It will be the current /)
 |    - homevol (Subvolume - it will be the current /home)
-|    |
-|    - tmp (Subvolume - It will be the current /tmp)
-|
 |
 - _snapshots (Subvolume -  It will contain all the snapshots which are subvolumes too)
 ```
@@ -57,7 +54,6 @@ cd /mnt
 btrfs subvolume create _active
 btrfs subvolume create _active/rootvol
 btrfs subvolume create _active/homevol
-btrfs subvolume create _active/tmp
 btrfs subvolume create _snapshots
 ```
 
@@ -67,10 +63,9 @@ Next, create all the directories needed and mount all the partitions (/boot/efi 
 cd ..
 umount /mnt
 mount -o subvol=_active/rootvol /dev/sda3 /mnt
-mkdir /mnt/{home,tmp,boot}
+mkdir /mnt/{home,boot}
 mkdir /mnt/boot/efi
 mkdir /mnt/mnt/defvol
-mount -o subvol=_active/tmp /dev/sda3 /mnt/tmp
 mount /dev/sda1 /mnt/boot/efi
 mount -o subvol=_active/homevol /dev/sda3 /mnt/home
 mount -o subvol=/ /dev/sda3 /mnt/mnt/defvol
@@ -88,9 +83,6 @@ UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /               btrfs           
 
 # /dev/sda1
 UUID=3074-C66B          /boot/efi       vfat            rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro       0 2
-
-# /dev/sda3 LABEL=arch
-UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /tmp            btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=_active/tmp 0 0
 
 # /dev/sda3 LABEL=arch
 UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /home           btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=_active/homevol     0 0
@@ -121,14 +113,6 @@ Install the GRUB EFI application executing this command (please, choose the dire
 Generate the main **grub.cfg** configuration file:
 
     grub-mkconfig -o /boot/grub/grub.cfg
-
-### /tmp folder
-Because of **/tmp** is another subvolume mounted as a traditional partition on */fstab*, temporary files won't be deleted by default when the system boots. This can cause some problems like preventing **insync** to start normally for example, because it uses a temporary file called *insync1000.sock* and if this file already exists, it won't run. In order to clean up */tmp* directory on every reboot, add this configuration file **/etc/tmpfiles.d/tmp.conf** with this content:
-
-```
-# Cleaining up /tmp directory everytime system boots
-D! /tmp 1777 root root 0
-```
 
 ### Additional packages installed
 A bunch of useful packages has been installed too: [tlp](https://wiki.archlinux.org/index.php/TLP) for energy saving and advanced power management, [reflector](https://wiki.archlinux.org/index.php/Reflector) for optimizing Arch mirrors repositories, [yay](https://newbloghosting.com/how-to-install-yay-on-arch-linux/) for compiling and installing packages easily from AUR repository, [snapd](https://wiki.archlinux.org/index.php/Snapd) to install snap packages, [btrfs-progs](https://wiki.archlinux.org/index.php/Btrfs) to manage BTRFS filesystem.
@@ -282,43 +266,55 @@ Then, rebuild grub configuration:
 
 - I have installed [Antergos](https://antergos.com/) (Arch-based distro easy to install and to go without too much configuration) on a PC (using BIOS legacy mode instead UEFI) that I needed to work inmediately. I used BTRFS too for the installation, but the problem is that you cannot choose the layout you want for your BTRFS volume. Instead, all the root system is installed directly in the top volume itself, but I want a more refined layout (the layout defined above) in order to manage all the snapshots in a more proper way. Because of that, I detailed all the steps I made in order to mmigrate my installation to a customize layout.
 Once the system is installed, reboot and open a terminal to see the structure of the BTRFS volume for /:
+
 ```
 sudo btrfs subvolume list /
 cd /
 ```
+
 Create all the subvolumes on / except rootvol subvolume:
+
 ```
 sudo btrfs subvolume create _active
-sudo btrfs subvolume create _active/tmp
 sudo btrfs subvolume create _snapshots
 ```
+
 Now, it is necessary to make a read-write snapshot of / into _active/rootvol
+
 ```
 sudo btrfs subvolume snapshot / /_active/rootvol
 ```
+
 Reboot the system using Archlinux LiveCD or Antergos LiveCD.
 Once the system is booted, mount all the structure within /mnt using as root /_active/rootvol (in my case, / is in /dev/sda1 and /home is in /dev/sdb2):
+
 ```
 mount -o subvol=/_active/rootvol /dev/sda1 /mnt
-mount -o subvol=/_active/tmp /dev/sda1 /mnt/tmp
 mount /dev/sdb2 /mnt/home
+
 ```
 Chroot the new system:
 ```
 arch-chroot /mnt /bin/bash
 ```
+
 Add **btrfs** as HOOK within /etc/mkinitcpio.conf and rebuild images:
+
 ```
 mkinitcpio -p linux
 ```
+
 Create a new directory called **defvol** within /mnt
+
 ```
 mkdir /mnt/defvol
 ```
+
 Modify **fstab** to reflect the changes (remember to modify / entry and point it to /_active/rootvol. Add /tmp line too). It is interesting to add /mnt/defvol in order to mount the entire volume as it is described above too. Systemd sometimes creates /var/lib/machines subvolume so add it too. The fstab file should look like this:
+
 ```
 # /etc/fstab: static file system information.
-#
+
 # Use 'blkid' to print the universally unique identifier for a
 # device; this may be used with UUID= as a more robust way to name devices
 # that works even if disks are added and removed. See fstab(5).
@@ -327,23 +323,28 @@ Modify **fstab** to reflect the changes (remember to modify / entry and point it
 #
 UUID=238a2358-8bf6-47a9-907f-47eaece88632 /home ext4 defaults,rw,relatime,data=ordered 0 0
 UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b / btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=_active/rootvol 0 0
-UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b /tmp btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=_active/tmp 0 0
 UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b /var/lib/machines btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=/var/lib/machines 0 0
 UUID=ce5c80f2-9edd-42f6-b920-d8ae43ac461b /mnt/defvol btrfs defaults,rw,noatime,compress=lzo,ssd,discard,space_cache,autodefrag,inode_cache,subvol=/ 0 0
 UUID=4621e43f-3b86-4fa2-9d9e-823a564572f4 swap swap defaults 0 0
 ```
+
 Reinstall GRUB (in my case, the PC was installed in BIOS legacy mode and GRUB is installed on /dev/sda):
+
 ```
 grub-install --target=i386-pc /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
+
 Exit chroot and unmount everything.
+
 ```
 exit
 umount /mnt -R
 ```
+
 Reboot.
 Once the system is booted, check if **/** is pointing to **/_active/rootvol**. If everything is working fine, all the files within the root of the volume can be deleted.
+
 ```
 cd /mnt/defvol
 sudo rm -rf b*
@@ -359,13 +360,16 @@ sudo rm -rf s*
 sudo rm -rf t*
 sudo rm -rf u*
 ```
+
 At this point, only **_active**, **_snapshots** and **var** should exist within **/mnt/defvol**.
 Go to **/mnt/defvol/_active/rootvol** and you can safely delete **_active** and **_snapshots**:
+
 ```
 cd /mnt/defvol/_active/rootvol
 sudo rm -rf _active
 sudo rm -rf _snapshots
 ```
+
 **DONE!!! :)**
 This is the [original post](http://unix.stackexchange.com/questions/62802/move-a-linux-instalation-using-btrfs-on-the-default-subvolume-subvolid-0-to-an) from I got the inspiration to do this stuff.
 

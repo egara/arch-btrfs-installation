@@ -5,9 +5,6 @@ UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /               btrfs           
 UUID=3074-C66B          /boot/efi       vfat            rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,errors=remount-ro       0 2
 
 # /dev/sda3 LABEL=arch
-UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /tmp            btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=_active/tmp 0 0
-
-# /dev/sda3 LABEL=arch
 UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /home           btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=_active/homevol     0 0
 
 # /dev/sda2
