@@ -65,10 +65,10 @@ umount /mnt
 mount -o subvol=_active/rootvol /dev/sda3 /mnt
 mkdir /mnt/{home,boot}
 mkdir /mnt/boot/efi
-mkdir /mnt/mnt/defvol
+mkdir /mnt/defvol
 mount /dev/sda1 /mnt/boot/efi
 mount -o subvol=_active/homevol /dev/sda3 /mnt/home
-mount -o subvol=/ /dev/sda3 /mnt/mnt/defvol
+mount -o subvol=/ /dev/sda3 /mnt/defvol
 ```
 
 ### Installing Arch Linux
@@ -91,6 +91,11 @@ UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /home           btrfs           
 UUID=9943adc7-d8a5-4500-bb35-3179aca961f5       none            swap            defaults        0 0
 
 UUID=9882a07e-0a0c-419d-bbdd-cbfbc4a6ffc9       /mnt/defvol     btrfs           rw,relatime,compress=lzo,ssd,discard,autodefrag,space_cache,subvol=/        0 0
+```
+### Install btrfs-progs
+Now we're about to recompile the kernel with the BTRFS hook, but before we do so we need to install the [btrfs-progs](https://wiki.archlinux.org/index.php/Btrfs)
+```
+pacman -S btrfs-progs
 ```
 
 ### Mkinitcpio
